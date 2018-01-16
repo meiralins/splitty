@@ -76,21 +76,21 @@ def make_intervals(blocks: list, start: bool = False) -> list:
     >>> make_intervals([(0, 'a'), (5, 'b'), (10, 'c')])
     [slice(0, 5), slice(5, 10), slice(10, None)]
     """
-    vector = []
     if not blocks:
         return [slice(0, None, None)]
 
     if isinstance(blocks[0], tuple):
         blocks = list(map(lambda x: x[0], blocks))
 
-    for i, _ in enumerate(blocks):
-        if start and i == 0:
-            vector.append(slice(0, blocks[i]))
-        if i == len(blocks) - 1:
-            vector.append(slice(blocks[i], None))
-        else:
-            vector.append(slice(blocks[i], blocks[i + 1]))
-    return vector
+    def pairwise(blocks):
+        if start:
+            yield (0, blocks[0])
+        it = iter(blocks)
+        next(it)
+        yield from zip(blocks, it)
+        yield (blocks[-1], None)
+
+    return list(slice(a, b) for a, b in pairwise(blocks))
 
 
 def apply_intervals(list_: list, intervals: list) -> list:
